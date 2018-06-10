@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Selfrawdata Watcher</title>
+        <!--[if IE]><script language="javascript" type="text/javascript" src="js/flot/excanvas.pack.js"></script><![endif]-->
+        <script language="javascript" type="text/javascript" src="js/jquery/jquery.js"></script>
+        <script language="javascript" type="text/javascript" src="js/flot/jquery.flot.js"></script>
+    </head>
+    <body>
+        <div id="selfrawdata_delta_ori" style="height:150px;"></div>
+        <div id="selfrawdata_delta_den" style="height:150px;"></div>
+		<div id="gyroscope" style="height:150px;"></div>
+
+        <script id="source" language="javascript" type="text/javascript">
+        $(function () {
+            /* flot */
+            var selfrawdata = [];
+            for (var i = 0; i < 48; ++i) {
+                selfrawdata.push([i, 0]);
+            }
+			var gyro_x = [];
+			var gyro_y = [];
+			var gyro_z = [];
+            for (var i = 0; i < 30; ++i) {
+                gyro_x.push([i, 0]);
+				gyro_y.push([i, 0]);
+				gyro_z.push([i, 0]);
+            }
+			
+            var plotOri = $.plot($("#selfrawdata_delta_ori"),
+                              [ { data: selfrawdata, label: "selfrawdata_delta_ori"} ],
+                              {
+                                lines: { show: true },
+                                points: { show: true },
+                                selection: { mode: "xy" },
+                                grid: { hoverable: true },
+                                yaxis: { min: -50, max: 100 }
+                              });
+
+            var plotDen = $.plot($("#selfrawdata_delta_den"),
+                              [ { data: selfrawdata, label: "selfrawdata_delta_den"} ],
+                              {
+                                lines: { show: true },
+                                points: { show: true },
+                                selection: { mode: "xy" },
+                                grid: { hoverable: true },
+                                yaxis: { min: -50, max: 100 }
+                              });
+
+			var plotGyr = $.plot($("#gyroscope"),
+                              [ { data: gyro_x, label: "gyroscope_x"}, { data: gyro_y, label: "gyroscope_y"}, { data: gyro_z, label: "gyroscope_z"} ],
+                              {
+                                lines: { show: true },
+                                points: { show: true },
+                                selection: { mode: "xy" },
+                                grid: { hoverable: true },
+                                yaxis: { min: -10, max: 10 }
+                              });
+							  
+            plotOri.__proto__.refreshSelfdelta = function (selfdelta) {
+                selfdelta.splice(0, 2);
+                var data = [];
+                for (var i = 0; i < selfdelta.length; ++i) {
+                    data.push([i, selfdelta[i]]);
+                }
+                this.setData([ { data: data } ]);
+                this.draw();
+            }
+			
+			plotOri.__proto__.pushGyroscopeData = function (gyro) {
+				series = this.getData();
+				for (var i = 0; i < gyro.length; ++i) {
+					for (var j = 0; j < series[i].data.length - 1; ++j) {
+						series[i].data[j][1] = series[i].data[j + 1][1];
+					}
+					series[i].data[series[i].data.length - 1][1] = gyro[i];
+				}
+				this.setData(series);
+				this.draw();
+			}
+
+            turnOnScreen = function () {
+                $('body').css("background-color", "#FFFFFF");
+            }
+
+            turnOffScreen = function () {
+                $('body').css("background-color", "#66CC00");
+            }
+			
+			plotGyr.pushGyroscopeData([1, 2, 3]);
+			plotGyr.pushGyroscopeData([2, 4, 6]);
+			plotGyr.pushGyroscopeData([3, 6, 9]);
+        });
+        </script>
+    </body>
+</html>
